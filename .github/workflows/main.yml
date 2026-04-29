@@ -8,6 +8,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # 全局指定工作目录，这样所有 run 命令都默认在 Android/ 下执行
+    defaults:
+      run:
+        working-directory: Android
+
     steps:
     - name: 检出代码
       uses: actions/checkout@v4
@@ -21,7 +27,7 @@ jobs:
     - name: 给 gradlew 添加执行权限
       run: chmod +x gradlew
 
-    - name: 编译 Debug APK（先跑通流程）
+    - name: 编译 Debug APK
       run: ./gradlew assembleDebug
 
     - name: 列出生成的 APK
@@ -31,4 +37,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: app-debug-apks
-        path: app/build/outputs/apk/debug/*.apk
+        path: Android/app/build/outputs/apk/debug/*.apk   # 注意这里也要用 Android/ 开头
