@@ -1,87 +1,54 @@
-name: Android CI/CD
+name: Zero-Error CI
 
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Set up JDK 17
+      - name: Setup JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Grant execute permission
-        run: chmod +x gradlew
-
       # =========================
-      # 版本号生成（核心）
+      # 🔥 Android Build
       # =========================
-      - name: Generate version
-        id: version
+      - name: Build Android
+        working-directory: Android
         run: |
-          VERSION_NAME=$(git describe --tags --always)
-          VERSION_CODE=$(git rev-list --count HEAD)
-
-          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
-          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+          chmod +x gradlew
+          ./gradlew assembleRelease
 
       # =========================
-      # 写入 Gradle 变量
+      # 🔥 Server Build
       # =========================
-      - name: Inject version into Gradle
+      - name: Build Server
         run: |
-          echo "VERSION_NAME=$VERSION_NAME"
-          echo "VERSION_CODE=$VERSION_CODE"
+          chmod +x gradlew || true
+          ./gradlew :server:build
 
       # =========================
-      # Build Release APK
-      # =========================
-      - name: Build APK
-        run: ./gradlew assembleRelease
-
-      # =========================
-      # Build AAB
-      # =========================
-      - name: Build AAB
-        run: ./gradlew bundleRelease
-
-      # =========================
-      # Upload artifacts
+      # Upload APK
       # =========================
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
-          path: app/build/outputs/apk/release/*.apk
+          name: apk
+          path: Android/app/build/outputs/apk/release/*.apk
 
-      - name: Upload AAB
+      # =========================
+      # Upload Server JAR
+      # =========================
+      - name: Upload Server
         uses: actions/upload-artifact@v4
         with:
-          name: release-aab
-          path: app/build/outputs/bundle/release/*.aab
-
-      # =========================
-      # GitHub Release 自动发布
-      # =========================
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/heads/main')
-        with:
-          tag_name: ${{ env.VERSION_NAME }}
-          name: Release ${{ env.VERSION_NAME }}
-          files: |
-            app/build/outputs/apk/release/*.apk
-            app/build/outputs/bundle/release/*.aab
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: server
+          path: server/build/libs/*.jar
