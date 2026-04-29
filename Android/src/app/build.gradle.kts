@@ -127,3 +127,17 @@ protobuf {
   protoc { artifact = "com.google.protobuf:protoc:4.26.1" }
   generateProtoTasks { all().forEach { it.plugins { create("java") { option("lite") } } } }
 }
+android {
+    // ... 你的其他配置 ...
+    
+    // 动态修改 APK 输出文件名
+    applicationVariants.all {
+        outputs.all {
+            val variant = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            // 获取当前时间
+            val buildTime = java.text.SimpleDateFormat("yyyyMMdd-HHmm").format(java.util.Date())
+            // 自定义文件名格式
+            variant.outputFileName = "Gallery-${buildType.name}-v${versionName}-${buildTime}.apk"
+        }
+    }
+}
