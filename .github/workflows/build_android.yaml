@@ -20,31 +20,17 @@ jobs:
           java-version: 17
 
       # =========================
-      # 🔥 先看看到底有什么文件
+      # 🔥 从根目录构建一切
       # =========================
-      - name: Debug - 列出 Android 目录内容
+      - name: Build All
         run: |
-          echo "=== 根目录 ==="
-          ls -la
-          echo "=== Android 目录 ==="
-          ls -la Android/ || echo "Android 目录不存在"
-          echo "=== 查找所有 gradlew ==="
-          find . -name "gradlew" -type f 2>/dev/null || echo "没有找到任何 gradlew"
-
-      # =========================
-      # 🔥 用系统 gradle 直接编译
-      # =========================
-      - name: Build Android APK
-        run: |
-          # 直接用系统 gradle，-p 指定 Android 目录
-          gradle -p Android assembleDebug --no-daemon
-
-      # =========================
-      # 🔥 Server Build
-      # =========================
-      - name: Build Server JAR
-        run: |
-          gradle -p Android :server:build --no-daemon
+          cd Android
+          chmod +x gradlew 2>/dev/null || true
+          if [ -f gradlew ]; then
+            ./gradlew assembleDebug :server:build
+          else
+            gradle assembleDebug :server:build
+          fi
 
       # =========================
       # Upload APK
@@ -62,4 +48,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: server
-          path: server/build/libs/*.jar
+          path: '**/build/libs/*.jar'
