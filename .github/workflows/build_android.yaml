@@ -19,10 +19,12 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: 进入 Android 目录并编译
+    - name: 编译项目
       run: |
+        # 直接在根目录下执行，用相对路径指过去
+        chmod +x Android/gradlew
+        # 进入目录执行
         cd Android
-        chmod +x gradlew
         ./gradlew assembleDebug
 
     - name: 上传 APK
