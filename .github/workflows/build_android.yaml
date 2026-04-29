@@ -20,22 +20,31 @@ jobs:
           java-version: 17
 
       # =========================
-      # 🔥 Android Build
+      # 🔥 先看看到底有什么文件
+      # =========================
+      - name: Debug - 列出 Android 目录内容
+        run: |
+          echo "=== 根目录 ==="
+          ls -la
+          echo "=== Android 目录 ==="
+          ls -la Android/ || echo "Android 目录不存在"
+          echo "=== 查找所有 gradlew ==="
+          find . -name "gradlew" -type f 2>/dev/null || echo "没有找到任何 gradlew"
+
+      # =========================
+      # 🔥 用系统 gradle 直接编译
       # =========================
       - name: Build Android APK
         run: |
-          cd Android
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          # 直接用系统 gradle，-p 指定 Android 目录
+          gradle -p Android assembleDebug --no-daemon
 
       # =========================
       # 🔥 Server Build
       # =========================
       - name: Build Server JAR
         run: |
-          cd Android
-          chmod +x gradlew
-          ./gradlew :server:build
+          gradle -p Android :server:build --no-daemon
 
       # =========================
       # Upload APK
