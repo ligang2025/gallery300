@@ -1,6 +1,8 @@
-name: 纯诊断 - 只看目录
+name: Zero-Error CI
 
 on:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -11,22 +13,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 诊断一切
-        run: |
-          echo "1. 当前目录:"
-          pwd
-          echo ""
-          echo "2. 根目录所有文件:"
-          ls -la
-          echo ""
-          echo "3. Android 目录所有文件:"
-          ls -la Android/ 2>/dev/null || echo "Android 目录不存在！！！"
-          echo ""
-          echo "4. 找所有 settings.gradle.kts:"
-          find . -name "settings.gradle.kts" 2>/dev/null
-          echo ""
-          echo "5. 找所有 build.gradle.kts:"
-          find . -name "build.gradle.kts" 2>/dev/null
-          echo ""
-          echo "6. settings.gradle.kts 内容:"
-          cat Android/settings.gradle.kts 2>/dev/null || echo "文件不存在"
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build APK
+        run: gradle -p Android/src assembleDebug --no-daemon
+
+      - name: Build Server
+        run: gradle -p Android/src :server:build --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: Android/src/app/build/outputs/apk/**/*.apk
+
+      - name: Upload Server
+        uses: actions/upload-artifact@v4
+        with:
+          name: server
+          path: '**/build/libs/*.jar'
+          
