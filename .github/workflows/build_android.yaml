@@ -19,31 +19,34 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # =========================
-      # 🔥 从根目录构建一切
-      # =========================
-      - name: Build All
+      - name: 检查 Android 目录结构
         run: |
-          cd Android
-          chmod +x gradlew 2>/dev/null || true
-          if [ -f gradlew ]; then
-            ./gradlew assembleDebug :server:build
-          else
-            gradle assembleDebug :server:build
-          fi
+          echo "=== Android 目录内容 ==="
+          ls -la Android/
+          echo ""
+          echo "=== settings.gradle.kts ==="
+          cat Android/settings.gradle.kts 2>/dev/null || echo "settings.gradle.kts 不存在"
+          echo ""
+          echo "=== build.gradle.kts ==="
+          cat Android/build.gradle.kts 2>/dev/null || echo "build.gradle.kts 不存在"
 
-      # =========================
-      # Upload APK
-      # =========================
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          build-root-directory: Android
+
+      - name: Build APK
+        run: gradle assembleDebug
+
+      - name: Build Server
+        run: gradle :server:build
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: apk
           path: Android/app/build/outputs/apk/**/*.apk
 
-      # =========================
-      # Upload Server JAR
-      # =========================
       - name: Upload Server
         uses: actions/upload-artifact@v4
         with:
