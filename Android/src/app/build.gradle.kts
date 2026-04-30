@@ -1,3 +1,5 @@
+import com.android.build.api.variant.ApplicationVariant
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -13,7 +15,6 @@ android {
         minSdk = 24
         targetSdk = 34
 
-        // CI 会覆盖这些值（建议保留默认）
         versionCode = 1
         versionName = "1.0.0"
     }
@@ -21,7 +22,6 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -39,25 +39,13 @@ android {
     }
 }
 
-/**
- * =========================
- * 🔥 CI / 企业级 APK 命名系统（AGP 8 正确写法）
- * =========================
- */
-import com.android.build.api.variant.ApplicationVariant
-
 androidComponents {
-
-    onVariants { variant: ApplicationVariant ->
-
+    onVariants { variant ->
         variant.outputs.forEach { output ->
-
             val versionName = variant.versionName.getOrElse("1.0.0")
-
             val buildTime = java.time.LocalDateTime.now()
                 .toString()
                 .replace(":", "-")
-
             output.outputFileName.set(
                 "Gallery-${variant.name}-v${versionName}-${buildTime}.apk"
             )
