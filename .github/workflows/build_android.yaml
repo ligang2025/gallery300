@@ -1,8 +1,6 @@
-name: Zero-Error CI
+name: 纯诊断 - 只看目录
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -13,42 +11,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      - name: 检查 Android 目录结构
+      - name: 诊断一切
         run: |
-          echo "=== Android 目录内容 ==="
-          ls -la Android/
+          echo "1. 当前目录:"
+          pwd
           echo ""
-          echo "=== settings.gradle.kts ==="
-          cat Android/settings.gradle.kts 2>/dev/null || echo "settings.gradle.kts 不存在"
+          echo "2. 根目录所有文件:"
+          ls -la
           echo ""
-          echo "=== build.gradle.kts ==="
-          cat Android/build.gradle.kts 2>/dev/null || echo "build.gradle.kts 不存在"
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          build-root-directory: Android
-
-      - name: Build APK
-        run: gradle assembleDebug
-
-      - name: Build Server
-        run: gradle :server:build
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: apk
-          path: Android/app/build/outputs/apk/**/*.apk
-
-      - name: Upload Server
-        uses: actions/upload-artifact@v4
-        with:
-          name: server
-          path: '**/build/libs/*.jar'
+          echo "3. Android 目录所有文件:"
+          ls -la Android/ 2>/dev/null || echo "Android 目录不存在！！！"
+          echo ""
+          echo "4. 找所有 settings.gradle.kts:"
+          find . -name "settings.gradle.kts" 2>/dev/null
+          echo ""
+          echo "5. 找所有 build.gradle.kts:"
+          find . -name "build.gradle.kts" 2>/dev/null
+          echo ""
+          echo "6. settings.gradle.kts 内容:"
+          cat Android/settings.gradle.kts 2>/dev/null || echo "文件不存在"
